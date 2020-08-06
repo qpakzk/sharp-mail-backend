@@ -1,13 +1,13 @@
 var express = require('express');
 const nodemailer = require("nodemailer");
 const { encrypt } = require('../lib/crypto');
+const os = require('os');
 
 var router = express.Router();
 
 router.post('/send', function(req, res, next) {
     const { sender, password, receiver, title, body } = req.body;
     console.log(`sender=${sender}`);
-    console.log(`password=${password}`);
     console.log(`receiver=${receiver}`);
     console.log(`title=${title}`);
     console.log(`body=${body}`);
@@ -34,8 +34,22 @@ router.post('/send', function(req, res, next) {
           pass: password,
         },
       });
-    
-    let form_url = 'http://141.223.83.26:3000/decrypt/';
+
+    const ifaces = os.networkInterfaces();
+    let IP_ADDR = '127.0.0.1';
+    Object.keys(ifaces).forEach(ifname => {
+        ifaces[ifname].forEach(iface => {
+            if ('IPv4' !== iface.family || iface.internal !== false) {
+                return;
+            }
+            
+            IP_ADDR = iface.address;
+            return;
+        });
+    });
+
+    console.log(`ip address = ${IP_ADDR}`);
+    let form_url = `http://${IP_ADDR}:3000/decrypt/`;
     const mail_html = `
 	    <!doctype html>
         <html>
