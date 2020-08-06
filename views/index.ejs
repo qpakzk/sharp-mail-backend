@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <h1><%= title %></h1>
+    <h2>Welcome to <%= title %></h2>
+    <hr style="height:2px;border-width:0;color:gray;background-color:gray">
+
+    <form action='/mail/send' method='post'>
+      <label for="sender">Sender's #mail address:</label><br>
+      <input type='text' name='sender' id='sender' pattern="[a-z0-9._%+-]+#[a-z0-9.-]+\.[a-z]{2,}$" placeholder="characters#characters.domain" /><br>
+      <label for="password">Sender's #mail password:</label><br>
+      <input type='password' name='password' id='password' placeholder="password" /><br>
+      <hr style="height:1px;border-width:0;color:gray;background-color:gray">
+
+      <label for="receiver">Receiver's #mail address:</label><br>
+      <input type='text' name='receiver' id='receiver' pattern="[a-z0-9._%+-]+#[a-z0-9.-]+\.[a-z]{2,}$" placeholder="characters#characters.domain" /><br>
+      <hr style="height:1px;border-width:0;color:gray;background-color:gray">
+
+      <label for="title">Title:</label><br>
+      <input type='text' name='title' id='title' placeholder="title" /><br>
+      <label for="body">Body:</label><br>
+      <textarea id="body" name="body" placeholder="Type it...!" rows="4" cols="50"></textarea><br>
+      <input type='submit' value='Send!' />
+    </form>
+  </body>
+</html>
