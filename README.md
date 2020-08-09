@@ -1,3 +1,3 @@
-# Content-Certified Mailing Service Backend
+# Sharp Mail Backend
 
-A mailing service backend to send mails content-certified by blockchain
+A email backend to send emails content-certified by blockchain
