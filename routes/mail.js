@@ -35,17 +35,16 @@ router.post('/send', function(req, res, next) {
         },
       });
 
-    const ifaces = os.networkInterfaces();
     let IP_ADDR = '127.0.0.1';
-    Object.keys(ifaces).forEach(ifname => {
-        ifaces[ifname].forEach(iface => {
-            if ('IPv4' !== iface.family || iface.internal !== false) {
-                return;
-            }
-            
-            IP_ADDR = iface.address;
+    const { ens33 } = os.networkInterfaces();
+
+    ens33.forEach(iface => {
+        if ('IPv4' !== iface.family || iface.internal !== false) {
             return;
-        });
+        }
+
+        IP_ADDR = iface.address;
+        return;
     });
 
     console.log(`ip address = ${IP_ADDR}`);
