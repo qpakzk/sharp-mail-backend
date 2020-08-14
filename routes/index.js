@@ -3,6 +3,7 @@ const axios = require('axios');
 const { decrypt } = require('../lib/crypto');
 const { query } = require('../fabric/query');
 const e = require('express');
+const f = require('session-file-store');
 
 var router = express.Router();
 
@@ -40,16 +41,29 @@ router.post('/decrypt', async (req, res) => {
     console.info('==== decryted body ====');
     console.log(decrypted_body);
 
-    let html = `
-      <h1>Decypt the Mail Content</h1>
-      <p>[Encrypted Body] ${encrypted}</p>
-      <p>[Decrypted Body] ${decrypted_body}</p>
-    `;
-    res.send(html);
+    req.session.encrypted = encrypted;
+    req.session.decrypted = decrypted_body;
+    res.redirect('/decrypt');
+
+    // let html = `
+    //   <h1>Decypt the Mail Content</h1>
+    //   <p>[Encrypted Body] ${encrypted}</p>
+    //   <p>[Decrypted Body] ${decrypted_body}</p>
+    // `;
+    // res.send(html);
   } catch (err) {
     console.error(err);
     res.json(err);
   };
+});
+
+router.get('/decrypt', (req, res) => {
+  let html = `
+      <h1>Decypt the Mail Content</h1>
+      <p>[Encrypted Body] ${req.session.encrypted}</p>
+      <p>[Decrypted Body] ${req.session.decrypted}</p>
+    `;
+  res.send(html);
 });
 
 router.post('/verify', async (req, res) => {
@@ -60,18 +74,35 @@ router.post('/verify', async (req, res) => {
     console.info('==== token ====');
     console.log(tokenObj);
     const { from, to, date } = tokenObj.xattr;
-    let html = `
-      <h1>Certificate</h1>
-      <p>Sender: ${from}</p>
-      <p>Receiver: ${to}</p>
-      <p>Creation Date: ${date}</p>
-      <p>Token ID: ${tokenid}</p>
-    `;
-    res.send(html);
+    req.session.from = from;
+    req.session.to = to;
+    req.session.date = date;
+    req.session.tokenid = tokenid;
+    res.redirect('/verify');
+    // let html = `
+    //   <h1>Certificate</h1>
+    //   <p>Sender: ${from}</p>
+    //   <p>Receiver: ${to}</p>
+    //   <p>Creation Date: ${date}</p>
+    //   <p>Token ID: ${tokenid}</p>
+    // `;
+    // res.send(html);
   } catch(error) {
     console.error(error);
     res.json(error);
   }
+});
+
+router.get('/verify', (req, res) => {
+  const { from, to, date, tokenid } = req.session;
+  let html = `
+  <h1>Certificate</h1>
+  <p>Sender: ${from}</p>
+  <p>Receiver: ${to}</p>
+  <p>Creation Date: ${date}</p>
+  <p>Token ID: ${tokenid}</p>
+  `;
+  res.send(html);
 });
 
 module.exports = router;

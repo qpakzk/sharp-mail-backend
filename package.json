@@ -3,21 +3,23 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "nodemon ./bin/www"
+    "start": "nodemon -i sessions -i wallet ./bin/www"
   },
   "dependencies": {
     "axios": "^0.19.2",
-    "cookie-parser": "~1.4.4",
+    "cookie-parser": "^1.4.5",
     "crypto-js": "^4.0.0",
     "debug": "~2.6.9",
     "dotenv": "^8.2.0",
     "ejs": "~2.6.1",
     "express": "~4.16.1",
+    "express-session": "^1.17.1",
     "fabric-ca-client": "^2.2.0",
     "fabric-network": "^2.2.0",
     "http-errors": "~1.6.3",
     "morgan": "~1.9.1",
-    "nodemailer": "^6.4.11"
+    "nodemailer": "^6.4.11",
+    "session-file-store": "^1.4.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.4"
