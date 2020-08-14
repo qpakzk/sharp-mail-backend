@@ -106,3 +106,4 @@ dist
 # custom
 .DS_Store
 sessions/
+wallet/

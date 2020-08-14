@@ -2,8 +2,12 @@ var express = require('express');
 const nodemailer = require("nodemailer");
 const { encrypt } = require('../lib/crypto');
 const os = require('os');
+const { registerUser } = require('../fabric/user');
+const  { mint } = require('../fabric/invoke');
 
 var router = express.Router();
+
+const tokenType = 'mail';
 
 router.post('/send', function(req, res, next) {
     const { sender, password, receiver, title, body } = req.body;
@@ -11,6 +15,9 @@ router.post('/send', function(req, res, next) {
     console.log(`receiver=${receiver}`);
     console.log(`title=${title}`);
     console.log(`body=${body}`);
+
+    registerUser(sender);
+    registerUser(receiver);
 
     let service = "";
     if (sender.includes('#') && sender.includes('.')) {
@@ -26,7 +33,33 @@ router.post('/send', function(req, res, next) {
 
     console.log(`sender=${sender_email}, receiver=${receiver_email}`);
 
-    const encrypted_body = encrypt(body);
+    const key = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const timestamp = Date.now();
+    
+    const xattr = {
+        'from': sender,
+        'to': receiver,
+        'date': new Date(timestamp),
+        'key': key,
+        'visited': false
+    };
+
+    const uri = {
+        'path': '',
+        'hash': '',
+    };
+
+    console.info('==== mint ====');
+    console.log(`tokenId=${timestamp},tokenType=${tokenType},owner=${receiver},xattr=${JSON.stringify(xattr)},uri=${JSON.stringify(uri)}`);
+    mint(timestamp, tokenType, receiver, xattr, uri)
+        .then(_ => {
+            console.info('==== mint success ====');
+        })
+        .catch(err => {
+            console.error('mint fail');
+        });
+    
+    const encrypted_body = encrypt(body, key);
     let transporter = nodemailer.createTransport({
         service,
         auth: {
@@ -48,7 +81,8 @@ router.post('/send', function(req, res, next) {
     });
 
     console.log(`ip address = ${IP_ADDR}`);
-    let form_url = `http://${IP_ADDR}:3000/decrypt/`;
+    const decrypt_url = `http://${IP_ADDR}:3000/decrypt/`;
+    const verify_url = `http://${IP_ADDR}:3000/verify/`;
     const mail_html = `
 	    <!doctype html>
         <html>
@@ -57,9 +91,16 @@ router.post('/send', function(req, res, next) {
             </head>
             <body>
                 <p>${encrypted_body}</p>
-                <form action=${form_url} target="_blank" method="post">
+                <form action=${decrypt_url} target="_blank" method="post">
                     <input type="hidden" name="encrypted" value=${encrypted_body} />
+                    <input type="hidden" name="tokenid" value=${timestamp} />
+                    <input type="hidden" name="receiver" value=${receiver} />
                     <input type="submit" value="Decrypt!" />
+                </form>
+                <form action=${verify_url} target="_blank" method="post">
+                    <input type="hidden" name="tokenid" value=${timestamp} />
+                    <input type="hidden" name="receiver" value=${receiver} />
+                    <input type="submit" value="Verify!" />
                 </form>
             </body>
         </html>`;

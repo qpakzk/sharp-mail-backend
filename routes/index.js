@@ -1,6 +1,8 @@
 var express = require('express');
 const axios = require('axios');
 const { decrypt } = require('../lib/crypto');
+const { query } = require('../fabric/query');
+const e = require('express');
 
 var router = express.Router();
 
@@ -25,11 +27,51 @@ router.get('/hello', function(req, res, next) {
     })
 });
 
-router.post('/decrypt', (req, res) => {
-  const { x_encrypted } = req.body;
-  const decrypted_body = decrypt(x_encrypted);
-  console.log(decrypted_body);
-  res.send(decrypted_body);
+router.post('/decrypt', async (req, res) => {
+  const { encrypted, tokenid, receiver } = req.body;
+
+  try {
+    const token = await query(receiver, tokenid);
+    const tokenObj = JSON.parse(token);
+    console.info('==== token ====');
+    console.log(tokenObj);
+    const { key } = tokenObj.xattr;
+    const decrypted_body = decrypt(encrypted, key);
+    console.info('==== decryted body ====');
+    console.log(decrypted_body);
+
+    let html = `
+      <h1>Decypt the Mail Content</h1>
+      <p>[Encrypted Body] ${encrypted}</p>
+      <p>[Decrypted Body] ${decrypted_body}</p>
+    `;
+    res.send(html);
+  } catch (err) {
+    console.error(err);
+    res.json(err);
+  };
+});
+
+router.post('/verify', async (req, res) => {
+  const { tokenid, receiver } = req.body;
+  try {
+    const token = await query(receiver, tokenid);
+    const tokenObj = JSON.parse(token);
+    console.info('==== token ====');
+    console.log(tokenObj);
+    const { from, to, date } = tokenObj.xattr;
+    let html = `
+      <h1>Certificate</h1>
+      <p>Sender: ${from}</p>
+      <p>Receiver: ${to}</p>
+      <p>Creation Date: ${date}</p>
+      <p>Token ID: ${tokenid}</p>
+    `;
+    res.send(html);
+  } catch(error) {
+    console.error(error);
+    res.json(error);
+  }
 });
 
 module.exports = router;
